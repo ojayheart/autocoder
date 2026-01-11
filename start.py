@@ -80,7 +80,8 @@ def display_menu(projects: list[tuple[str, Path]]) -> None:
     print("\n[1] Create new project")
 
     if projects:
-        print("[2] Continue existing project")
+        print("[2] Continue existing project (build features)")
+        print("[3] Test existing project (find bugs)")
 
     print("[q] Quit")
     print()
@@ -374,6 +375,32 @@ def run_agent(project_name: str, project_dir: Path) -> None:
         print("\n\nAgent interrupted. Run again to resume.")
 
 
+def run_tester(project_name: str, project_dir: Path) -> None:
+    """Run the auto-tester agent for the given project.
+
+    Args:
+        project_name: Name of the project
+        project_dir: Absolute path to the project directory
+    """
+    print(f"\nStarting tester for project: {project_name}")
+    print(f"Location: {project_dir}")
+    print("-" * 50)
+    print("\nThe tester will:")
+    print("  - Navigate the app like a real user")
+    print("  - Find bugs, UX issues, and missing functionality")
+    print("  - Report findings to test_findings.db")
+    print("-" * 50)
+
+    # Build the command
+    cmd = [sys.executable, "auto_tester.py", "--project-dir", str(project_dir.resolve())]
+
+    # Run the tester
+    try:
+        subprocess.run(cmd, check=False)
+    except KeyboardInterrupt:
+        print("\n\nTester interrupted. Run again to resume.")
+
+
 def main() -> None:
     """Main entry point."""
     # Ensure we're in the right directory
@@ -402,6 +429,16 @@ def main() -> None:
             if selected:
                 project_name, project_dir = selected
                 run_agent(project_name, project_dir)
+
+        elif choice == '3' and projects:
+            print("\n" + "-" * 40)
+            print("  Select Project to Test")
+            print("-" * 40)
+            display_projects(projects)
+            selected = get_project_choice(projects)
+            if selected:
+                project_name, project_dir = selected
+                run_tester(project_name, project_dir)
 
         else:
             print("Invalid option. Please try again.")

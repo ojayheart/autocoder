@@ -110,6 +110,12 @@ ui/.vite/
 .env.*.local
 
 # ===================
+# Credentials (OAuth tokens, API keys)
+# ===================
+credentials/
+*.token.json
+
+# ===================
 # Cache directories
 # ===================
 .cache/

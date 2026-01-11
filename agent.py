@@ -28,6 +28,7 @@ from prompts import (
     copy_spec_to_project,
     has_project_prompts,
 )
+from env_validator import ensure_project_env
 
 
 # Configuration
@@ -140,6 +141,20 @@ async def run_autonomous_agent(
 
     # Create project directory
     project_dir.mkdir(parents=True, exist_ok=True)
+
+    # Validate environment variables before starting
+    # This ensures the agent can actually test and verify features
+    env_valid = ensure_project_env(
+        project_dir,
+        auto_pull=True,  # Try to pull from Vercel if missing
+        strict=False,     # Only check required vars
+        interactive=True, # Prompt user if issues found
+    )
+
+    if not env_valid:
+        print("\nAborting: Environment validation failed.")
+        print("Please configure environment variables and try again.")
+        return
 
     # Check if this is a fresh start or continuation
     # Uses has_features() which checks if the database actually has features,

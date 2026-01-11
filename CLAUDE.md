@@ -150,6 +150,49 @@ Projects can be stored in any directory (registered in `~/.autocoder/registry.db
 - `prompts/coding_prompt.md` - Continuation session prompt
 - `features.db` - SQLite database with feature test cases
 - `.agent.lock` - Lock file to prevent multiple agent instances
+- `.env.local` - **Required** environment variables for runtime testing
+
+### Environment Validation (IMPORTANT)
+
+The agent validates environment variables before starting to ensure it can actually test and verify features. Without proper env vars, the agent can only check that code compiles but cannot verify features work at runtime.
+
+**Required environment variables:**
+- `DATABASE_URL` - PostgreSQL connection string
+- `AUTH_SECRET` - NextAuth secret for session signing
+- `AUTH_GOOGLE_ID` - Google OAuth client ID
+- `AUTH_GOOGLE_SECRET` - Google OAuth client secret
+
+**Recommended variables:**
+- `AUTH_RESEND_KEY` - Resend API key for emails
+- `STRIPE_SECRET_KEY` - Stripe for payments
+- `BLOB_READ_WRITE_TOKEN` - Vercel Blob for file uploads
+- `GOOGLE_GENERATIVE_AI_API_KEY` - AI features
+
+**Setting up environment for a project:**
+
+```bash
+# Option 1: Pull from Vercel (recommended)
+cd /path/to/project
+vercel link
+vercel env pull .env.local
+
+# Option 2: Copy from local development
+scp ~/.../project/.env.local user@server:/path/to/project/
+
+# Option 3: Manual setup
+cp .env.example .env.local
+# Edit .env.local with real values
+```
+
+**For remote/VM deployments:**
+Always ensure `.env.local` is configured BEFORE running autocoder. The agent will:
+1. Check if `.env.local` exists
+2. Validate required variables are present
+3. Check for placeholder values
+4. Optionally attempt to pull from Vercel
+5. Abort or warn if environment is invalid
+
+See `env_validator.py` for implementation details.
 
 ### Security Model
 
@@ -173,10 +216,11 @@ Defense-in-depth approach configured in `client.py`:
 
 ### Agent Session Flow
 
-1. Check if `features.db` has features (determines initializer vs coding agent)
-2. Create ClaudeSDKClient with security settings
-3. Send prompt and stream response
-4. Auto-continue with 3-second delay between sessions
+1. **Validate environment** - Check `.env.local` for required variables (aborts if invalid)
+2. Check if `features.db` has features (determines initializer vs coding agent)
+3. Create ClaudeSDKClient with security settings
+4. Send prompt and stream response
+5. Auto-continue with 3-second delay between sessions
 
 ### Real-time UI Updates
 

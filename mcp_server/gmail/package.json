@@ -1,0 +1,14 @@
+{
+  "name": "@autocoder/gmail-mcp",
+  "version": "1.0.0",
+  "description": "Gmail MCP Server for Autocoder Testing",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "googleapis": "^140.0.0"
+  }
+}

@@ -28,6 +28,27 @@ FEATURE_MCP_TOOLS = [
     "mcp__features__feature_create_bulk",
 ]
 
+# Tester MCP tools for test finding management
+TESTER_MCP_TOOLS = [
+    "mcp__tester__finding_report",
+    "mcp__tester__finding_get_stats",
+    "mcp__tester__finding_list",
+    "mcp__tester__finding_update_status",
+    "mcp__tester__feature_list_for_testing",
+    "mcp__tester__feature_get_by_id",
+    "mcp__tester__coverage_get_stats",
+]
+
+# Gmail MCP tools for authentication testing
+GMAIL_MCP_TOOLS = [
+    "mcp__gmail__list_emails",
+    "mcp__gmail__get_email",
+    "mcp__gmail__search_emails",
+    "mcp__gmail__get_unread_count",
+    "mcp__gmail__mark_as_read",
+    "mcp__gmail__trash_emails",
+]
+
 # Playwright MCP tools for browser automation
 PLAYWRIGHT_TOOLS = [
     # Core navigation & screenshots
@@ -197,5 +218,126 @@ def create_client(project_dir: Path, model: str, yolo_mode: bool = False):
             max_turns=1000,
             cwd=str(project_dir.resolve()),
             settings=str(settings_file.resolve()),  # Use absolute path
+        )
+    )
+
+
+def create_tester_client(project_dir: Path, model: str):
+    """
+    Create a Claude Agent SDK client for the auto-tester agent.
+
+    The tester client has access to:
+    - Tester MCP tools (finding_report, finding_list, etc.)
+    - Playwright for browser automation
+    - Gmail for authentication testing
+    - Read-only codebase access
+
+    Args:
+        project_dir: Directory for the project
+        model: Claude model to use
+
+    Returns:
+        Configured ClaudeSDKClient for testing
+    """
+    # Build allowed tools list for tester
+    allowed_tools = [
+        *BUILTIN_TOOLS,
+        *TESTER_MCP_TOOLS,
+        *PLAYWRIGHT_TOOLS,
+        *GMAIL_MCP_TOOLS,
+    ]
+
+    # Build permissions list (more restrictive - read-only for code)
+    permissions_list = [
+        # Read-only access to codebase
+        "Read(./**)",
+        "Glob(./**)",
+        "Grep(./**)",
+        # Bash for running commands (starting servers, etc.)
+        "Bash(*)",
+        # Allow web tools for documentation lookup
+        "WebFetch",
+        "WebSearch",
+        # Allow Tester MCP tools
+        *TESTER_MCP_TOOLS,
+        # Allow Playwright MCP tools for browser automation
+        *PLAYWRIGHT_TOOLS,
+        # Allow Gmail MCP tools for auth testing
+        *GMAIL_MCP_TOOLS,
+    ]
+
+    security_settings = {
+        "sandbox": {"enabled": True, "autoAllowBashIfSandboxed": True},
+        "permissions": {
+            "defaultMode": "acceptEdits",
+            "allow": permissions_list,
+        },
+    }
+
+    # Ensure project directory exists
+    project_dir.mkdir(parents=True, exist_ok=True)
+
+    # Write settings to a file in the project directory
+    settings_file = project_dir / ".claude_tester_settings.json"
+    with open(settings_file, "w") as f:
+        json.dump(security_settings, f, indent=2)
+
+    print(f"Created tester security settings at {settings_file}")
+    print("   - Sandbox enabled (OS-level bash isolation)")
+    print(f"   - Filesystem access: {project_dir.resolve()} (read-only)")
+    print("   - MCP servers: tester (findings), playwright (browser), gmail (auth)")
+    print()
+
+    # Use system Claude CLI
+    system_cli = shutil.which("claude")
+    if system_cli:
+        print(f"   - Using system CLI: {system_cli}")
+    else:
+        print("   - Warning: System Claude CLI not found, using bundled CLI")
+
+    # Build MCP servers config for tester
+    autocoder_root = Path(__file__).parent.resolve()
+    mcp_servers = {
+        "tester": {
+            "command": sys.executable,
+            "args": ["-m", "mcp_server.tester_mcp"],
+            "env": {
+                **os.environ,
+                "PROJECT_DIR": str(project_dir.resolve()),
+                "PYTHONPATH": str(autocoder_root),
+            },
+        },
+        "playwright": {
+            "command": "npx",
+            "args": ["@playwright/mcp@latest", "--viewport-size", "1280x720"],
+        },
+        "gmail": {
+            "command": "node",
+            "args": [str(autocoder_root / "mcp_server" / "gmail" / "index.js")],
+            "env": {
+                **os.environ,
+                "GOOGLE_CREDENTIALS_PATH": str(autocoder_root / "credentials" / "google-credentials.json"),
+                "GOOGLE_TOKEN_PATH": str(autocoder_root / "credentials" / "google-token.json"),
+            },
+        },
+    }
+
+    return ClaudeSDKClient(
+        options=ClaudeAgentOptions(
+            model=model,
+            cli_path=system_cli,
+            system_prompt="You are an expert QA tester finding bugs and UX issues in web applications.",
+            setting_sources=["project"],
+            max_buffer_size=10 * 1024 * 1024,  # 10MB for screenshots
+            allowed_tools=allowed_tools,
+            mcp_servers=mcp_servers,
+            hooks={
+                "PreToolUse": [
+                    HookMatcher(matcher="Bash", hooks=[bash_security_hook]),
+                ],
+            },
+            max_turns=1000,
+            cwd=str(project_dir.resolve()),
+            settings=str(settings_file.resolve()),
         )
     )
