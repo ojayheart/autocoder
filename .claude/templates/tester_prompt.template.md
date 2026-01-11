@@ -559,4 +559,60 @@ Test thoroughly, document clearly, and help make this app production-ready.
 
 ---
 
+## EMAIL PROGRESS UPDATES
+
+After completing a significant chunk of testing work (e.g., finishing a major feature area, finding multiple critical issues, or completing a full testing session), send an email update to **ojayheart@gmail.com** using the Gmail MCP.
+
+**When to send updates:**
+- After finding 3+ critical/high severity issues
+- After completing testing of a major feature area (auth, payments, dashboard, etc.)
+- At the end of a testing session with meaningful findings
+- When blocked by a critical issue that needs immediate attention
+
+**DO NOT send updates for:**
+- Minor progress or single low-severity findings
+- Routine status checks
+- Every individual finding
+
+**Email format:**
+
+```
+Subject: [Project Name] Testing Update - [Date]
+
+Use mcp__gmail__send_email with:
+- to: ojayheart@gmail.com
+- subject: "[Project Name] Testing Update - [Summary]"
+- body: A well-formatted summary including:
+
+  ## Testing Session Summary
+
+  **Project:** [Project name]
+  **Date:** [Current date]
+  **Areas Tested:** [List of features/pages tested]
+
+  ## Key Findings
+
+  ### Critical/High Issues (if any)
+  - [Issue title]: [Brief description]
+  - [Issue title]: [Brief description]
+
+  ### Medium/Low Issues
+  - [Count] medium issues found
+  - [Count] low issues found
+
+  ## Coverage
+  - [X] features verified working
+  - [Y] issues reported total
+  - [Z] areas still need testing
+
+  ## Recommendations
+  - [Priority fixes needed]
+  - [Next testing focus areas]
+
+  ---
+  Sent by Auto-Tester Agent
+```
+
+---
+
 Begin by running Step 1 (Get Your Bearings).

@@ -39,7 +39,7 @@ TESTER_MCP_TOOLS = [
     "mcp__tester__coverage_get_stats",
 ]
 
-# Gmail MCP tools for authentication testing
+# Gmail MCP tools for authentication testing and notifications
 GMAIL_MCP_TOOLS = [
     "mcp__gmail__list_emails",
     "mcp__gmail__get_email",
@@ -47,7 +47,69 @@ GMAIL_MCP_TOOLS = [
     "mcp__gmail__get_unread_count",
     "mcp__gmail__mark_as_read",
     "mcp__gmail__trash_emails",
+    "mcp__gmail__send_email",  # For sending progress updates
 ]
+
+# Resend MCP tools for email notifications
+RESEND_MCP_TOOLS = [
+    "mcp__resend__send_email",
+]
+
+# Neon MCP tools for database operations
+NEON_MCP_TOOLS = [
+    "mcp__neon__list_projects",
+    "mcp__neon__get_project",
+    "mcp__neon__create_project",
+    "mcp__neon__delete_project",
+    "mcp__neon__list_branches",
+    "mcp__neon__create_branch",
+    "mcp__neon__delete_branch",
+    "mcp__neon__run_sql",
+    "mcp__neon__get_connection_string",
+]
+
+# GitHub MCP tools for repository management
+GITHUB_MCP_TOOLS = [
+    "mcp__github__create_or_update_file",
+    "mcp__github__search_repositories",
+    "mcp__github__create_repository",
+    "mcp__github__get_file_contents",
+    "mcp__github__push_files",
+    "mcp__github__create_issue",
+    "mcp__github__create_pull_request",
+    "mcp__github__fork_repository",
+    "mcp__github__create_branch",
+    "mcp__github__list_commits",
+    "mcp__github__list_issues",
+    "mcp__github__update_issue",
+    "mcp__github__add_issue_comment",
+    "mcp__github__search_code",
+    "mcp__github__search_issues",
+    "mcp__github__get_issue",
+]
+
+# Stripe MCP tools for payment operations
+STRIPE_MCP_TOOLS = [
+    "mcp__stripe__create_customer",
+    "mcp__stripe__list_customers",
+    "mcp__stripe__create_product",
+    "mcp__stripe__list_products",
+    "mcp__stripe__create_price",
+    "mcp__stripe__create_payment_link",
+    "mcp__stripe__list_invoices",
+    "mcp__stripe__create_invoice",
+]
+
+# Sentry MCP tools for error tracking
+SENTRY_MCP_TOOLS = [
+    "mcp__sentry__list_issues",
+    "mcp__sentry__get_issue",
+    "mcp__sentry__list_projects",
+    "mcp__sentry__get_events",
+]
+
+# Notification settings
+NOTIFICATION_EMAIL = "ojayheart@gmail.com"
 
 # Playwright MCP tools for browser automation
 PLAYWRIGHT_TOOLS = [
@@ -245,6 +307,11 @@ def create_tester_client(project_dir: Path, model: str):
         *TESTER_MCP_TOOLS,
         *PLAYWRIGHT_TOOLS,
         *GMAIL_MCP_TOOLS,
+        *RESEND_MCP_TOOLS,
+        *NEON_MCP_TOOLS,
+        *GITHUB_MCP_TOOLS,
+        *STRIPE_MCP_TOOLS,
+        *SENTRY_MCP_TOOLS,
     ]
 
     # Build permissions list (more restrictive - read-only for code)
@@ -264,6 +331,16 @@ def create_tester_client(project_dir: Path, model: str):
         *PLAYWRIGHT_TOOLS,
         # Allow Gmail MCP tools for auth testing
         *GMAIL_MCP_TOOLS,
+        # Allow Resend for email notifications
+        *RESEND_MCP_TOOLS,
+        # Allow Neon for database operations
+        *NEON_MCP_TOOLS,
+        # Allow GitHub for repository management
+        *GITHUB_MCP_TOOLS,
+        # Allow Stripe for payment operations
+        *STRIPE_MCP_TOOLS,
+        # Allow Sentry for error tracking
+        *SENTRY_MCP_TOOLS,
     ]
 
     security_settings = {
